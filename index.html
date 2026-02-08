@@ -24,6 +24,7 @@
         --line: rgba(255, 255, 255, 0.14);
         --card-edge: rgba(216, 223, 235, 0.12);
         --live: #ff4b4b;
+        --sep-col: clamp(30px, 4vw, 52px);
       }
 
       * {
@@ -161,7 +162,7 @@
 
       .timer-row {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr) var(--sep-col) minmax(0, 1fr) var(--sep-col) minmax(0, 1fr);
         align-items: center;
         gap: clamp(0.6rem, 2vw, 1.3rem);
         max-width: 980px;
@@ -201,7 +202,7 @@
 
       .labels {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr) var(--sep-col) minmax(0, 1fr) var(--sep-col) minmax(0, 1fr);
         gap: clamp(0.6rem, 2vw, 1.3rem);
         max-width: 980px;
         margin: 0.9rem auto 0;
