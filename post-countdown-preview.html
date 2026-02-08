@@ -429,6 +429,33 @@
         background: rgba(255, 255, 255, 0.1);
       }
 
+      .preview-controls {
+        position: fixed;
+        left: 14px;
+        bottom: 14px;
+        z-index: 80;
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+      }
+
+      .preview-btn {
+        appearance: none;
+        border: 1px solid rgba(199, 212, 242, 0.28);
+        background: rgba(7, 10, 15, 0.88);
+        color: #dce5fb;
+        border-radius: 7px;
+        padding: 0.42rem 0.58rem;
+        letter-spacing: 0.1em;
+        font-size: 0.62rem;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      .preview-btn:hover {
+        background: rgba(255, 255, 255, 0.08);
+      }
+
       @media (max-width: 800px) {
         .timer-row {
           grid-template-columns: 1fr;
@@ -580,6 +607,12 @@
       </div>
     </section>
 
+    <div class="preview-controls" aria-label="Preview controls">
+      <button id="preview-scene" class="preview-btn" type="button">Show Interaction</button>
+      <button id="preview-video" class="preview-btn" type="button">Play Video</button>
+      <button id="preview-black" class="preview-btn" type="button">Black Screen</button>
+    </div>
+
     <script>
       // Global countdown to 3:00 PM IST (Asia/Kolkata), same for everyone.
       const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
@@ -608,6 +641,9 @@
       const btnSahur = document.getElementById("btn-sahur");
       const btnViewer = document.getElementById("btn-viewer");
       const btnContinue = document.getElementById("btn-continue");
+      const previewSceneBtn = document.getElementById("preview-scene");
+      const previewVideoBtn = document.getElementById("preview-video");
+      const previewBlackBtn = document.getElementById("preview-black");
 
       const pad = (n) => String(n).padStart(2, "0");
       let revealed = false;
@@ -622,9 +658,6 @@
       }
 
       function lockToBlackScreen() {
-        try {
-          localStorage.setItem(LOCK_KEY, "1");
-        } catch (_) {}
         revealScreen.classList.add("active", "done");
         loreScreen.classList.remove("active");
       }
@@ -692,11 +725,7 @@
       revealVideoEl.addEventListener("error", lockToBlackScreen);
 
       const wasLocked = (() => {
-        try {
-          return localStorage.getItem(LOCK_KEY) === "1";
-        } catch (_) {
-          return false;
-        }
+        return false;
       })();
 
       if (wasLocked) {
@@ -704,27 +733,28 @@
       }
 
       function render() {
-        if (wasLocked) return;
-        const remaining = getMsUntil3PmIst();
-
-        if (remaining <= 0) {
-          openLoreScreen();
-          return;
-        }
-
-        const totalSeconds = Math.floor(remaining / 1000);
-
-        const hours = Math.floor(totalSeconds / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const seconds = totalSeconds % 60;
-
-        nodes.hours.textContent = pad(hours);
-        nodes.minutes.textContent = pad(minutes);
-        nodes.seconds.textContent = pad(seconds);
+        openLoreScreen();
       }
 
       render();
-      setInterval(render, 1000);
+
+      previewSceneBtn.addEventListener("click", () => {
+        revealScreen.classList.remove("active", "done");
+        revealVideoEl.pause();
+        revealVideoEl.currentTime = 0;
+        revealed = false;
+        loreActive = false;
+        openLoreScreen();
+      });
+
+      previewVideoBtn.addEventListener("click", () => {
+        revealScreen.classList.remove("done");
+        revealVideo();
+      });
+
+      previewBlackBtn.addEventListener("click", () => {
+        lockToBlackScreen();
+      });
     </script>
   </body>
 </html>
