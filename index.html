@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kyloh Files</title>
+    <meta
+      name="description"
+      content="Kyloh Files: globally synced 12-hour live countdown."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@500;700&family=Teko:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-0: #090a0d;
+        --bg-1: #111319;
+        --bg-2: #1b1e27;
+        --text: #f1f1f1;
+        --muted: #666b77;
+        --line: rgba(255, 255, 255, 0.14);
+        --card-edge: rgba(216, 223, 235, 0.12);
+        --live: #ff4b4b;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+
+      body {
+        display: grid;
+        place-items: center;
+        overflow-x: hidden;
+        color: var(--text);
+        font-family: "Roboto Mono", monospace;
+        background:
+          radial-gradient(circle at center, rgba(77, 97, 143, 0.17) 0%, rgba(77, 97, 143, 0) 48%),
+          radial-gradient(circle at center, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 70%),
+          linear-gradient(165deg, #0a0b0f 0%, #14161d 100%);
+      }
+
+      .rings {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background: repeating-radial-gradient(
+          circle at center,
+          rgba(255, 255, 255, 0.02) 0,
+          rgba(255, 255, 255, 0.02) 2px,
+          rgba(255, 255, 255, 0) 14px,
+          rgba(255, 255, 255, 0) 24px
+        );
+        opacity: 0.2;
+      }
+
+      .shell {
+        width: min(1160px, 94vw);
+        padding: 1.8rem 0.8rem 2rem;
+        text-align: center;
+      }
+
+      .live {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        margin-bottom: 0.9rem;
+        color: var(--muted);
+        font-size: clamp(0.62rem, 1.6vw, 0.78rem);
+        letter-spacing: 0.52em;
+        text-transform: uppercase;
+      }
+
+      .live-dot {
+        width: 0.52rem;
+        height: 0.52rem;
+        border-radius: 50%;
+        background: var(--live);
+        box-shadow: 0 0 12px rgba(255, 75, 75, 0.9);
+        animation: pulse 1.8s ease-out infinite;
+      }
+
+      h1 {
+        margin: 0;
+        font-family: "Teko", sans-serif;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-size: clamp(3.2rem, 13vw, 10rem);
+        line-height: 0.95;
+        color: #ececec;
+      }
+
+      .title-rule {
+        width: min(560px, 80vw);
+        height: 1px;
+        margin: 2.1rem auto 2.3rem;
+        background: linear-gradient(90deg, transparent, var(--line), transparent);
+      }
+
+      .timer-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+        align-items: center;
+        gap: clamp(0.6rem, 2vw, 1.3rem);
+        max-width: 980px;
+        margin: 0 auto;
+      }
+
+      .time-card {
+        border: 1px solid var(--card-edge);
+        border-radius: 20px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0) 38%),
+          linear-gradient(180deg, var(--bg-2), var(--bg-1));
+        box-shadow: inset 0 0 24px rgba(255, 255, 255, 0.03), 0 0 16px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+        min-height: clamp(220px, 29vw, 300px);
+        display: grid;
+        place-items: center;
+        position: relative;
+      }
+
+      .time-card::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 50%;
+        height: 1px;
+        background: rgba(0, 0, 0, 0.35);
+        transform: translateY(-0.5px);
+      }
+
+      .digits {
+        font-family: "Teko", sans-serif;
+        font-size: clamp(5.2rem, 11vw, 9.4rem);
+        line-height: 1;
+        letter-spacing: 0.03em;
+        color: #efefef;
+        text-shadow: 0 0 12px rgba(255, 255, 255, 0.08);
+      }
+
+      .separator {
+        font-family: "Teko", sans-serif;
+        font-size: clamp(4rem, 9vw, 7.5rem);
+        line-height: 1;
+        color: rgba(189, 195, 207, 0.3);
+        transform: translateY(-8px);
+      }
+
+      .labels {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: clamp(0.6rem, 2vw, 1.3rem);
+        max-width: 980px;
+        margin: 0.9rem auto 0;
+      }
+
+      .label {
+        color: var(--muted);
+        font-size: clamp(0.7rem, 1.7vw, 0.95rem);
+        letter-spacing: 0.44em;
+        text-transform: uppercase;
+      }
+
+      .footer {
+        margin-top: 2.5rem;
+      }
+
+      .classified {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.85rem;
+        color: var(--muted);
+        letter-spacing: 0.36em;
+        font-size: clamp(0.64rem, 1.6vw, 0.85rem);
+        text-transform: uppercase;
+      }
+
+      .classified::before,
+      .classified::after {
+        content: "";
+        width: clamp(56px, 10vw, 86px);
+        height: 1px;
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .social {
+        margin-top: 0.65rem;
+        display: flex;
+        justify-content: center;
+        gap: 1.15rem;
+      }
+
+      .icon-link {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        color: rgba(226, 231, 241, 0.64);
+        border-radius: 8px;
+        transition: color 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+      }
+
+      .icon-link:hover {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-2px);
+      }
+
+      .icon {
+        width: 30px;
+        height: 30px;
+        display: block;
+      }
+
+      @media (max-width: 800px) {
+        .timer-row {
+          grid-template-columns: 1fr;
+          gap: 0.75rem;
+        }
+
+        .separator {
+          display: none;
+        }
+
+        .time-card {
+          min-height: 150px;
+          border-radius: 16px;
+        }
+
+        .labels {
+          grid-template-columns: 1fr;
+          gap: 1.5rem;
+          margin-top: 1rem;
+        }
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 0.95;
+          transform: scale(0.9);
+        }
+        75% {
+          opacity: 0;
+          transform: scale(1.45);
+        }
+        100% {
+          opacity: 0;
+          transform: scale(1.45);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="rings" aria-hidden="true"></div>
+
+    <main class="shell">
+      <div class="live" aria-label="Live countdown">
+        <span class="live-dot" aria-hidden="true"></span>
+        <span>Live</span>
+      </div>
+
+      <h1>Kyloh Files</h1>
+      <div class="title-rule" aria-hidden="true"></div>
+
+      <section class="timer-row" aria-label="12-hour countdown">
+        <article class="time-card">
+          <div id="hours" class="digits">--</div>
+        </article>
+        <div class="separator" aria-hidden="true">:</div>
+        <article class="time-card">
+          <div id="minutes" class="digits">--</div>
+        </article>
+        <div class="separator" aria-hidden="true">:</div>
+        <article class="time-card">
+          <div id="seconds" class="digits">--</div>
+        </article>
+      </section>
+
+      <section class="labels" aria-hidden="true">
+        <div class="label">Hours</div>
+        <div class="label">Minutes</div>
+        <div class="label">Seconds</div>
+      </section>
+
+      <footer class="footer">
+        <div class="classified">Classified</div>
+        <nav class="social" aria-label="External links">
+          <a
+            class="icon-link"
+            href="https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="YouTube link"
+            title="YouTube"
+          >
+            <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path
+                d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31.4 31.4 0 0 0 0 12a31.4 31.4 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31.4 31.4 0 0 0 24 12a31.4 31.4 0 0 0-.5-5.8ZM9.6 15.6V8.4L16 12l-6.4 3.6Z"
+              />
+            </svg>
+          </a>
+
+          <a
+            class="icon-link"
+            href="https://www.ferrari.com/en-EN/auto/812-competizione?_gl=1*552vu8*_gcl_au*NDkzOTYzNzIyLjE3Njk2MTMyNTg.*_ga*MTA5NTYxMTg4Ni4xNzY5NjEzMjUz*_ga_JM1HT9B412*czE3NzA1NzgwMDgkbzMkZzEkdDE3NzA1NzgwMjQkajQ0JGwwJGgxNjY4MTE1MTY."
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Ferrari link"
+            title="Ferrari"
+          >
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M10.5 13.5 13.5 10.5" />
+              <path d="M7.1 16.9a4 4 0 0 1 0-5.7l2.2-2.2a4 4 0 0 1 5.7 0" />
+              <path d="M16.9 7.1a4 4 0 0 1 0 5.7l-2.2 2.2a4 4 0 0 1-5.7 0" />
+            </svg>
+          </a>
+        </nav>
+      </footer>
+    </main>
+
+    <script>
+      // Fixed UTC anchor gives everyone the same remaining time.
+      const ANCHOR_UTC_MS = Date.UTC(2026, 0, 1, 0, 0, 0);
+      const CYCLE_MS = 12 * 60 * 60 * 1000;
+
+      const nodes = {
+        hours: document.getElementById("hours"),
+        minutes: document.getElementById("minutes"),
+        seconds: document.getElementById("seconds"),
+      };
+
+      const pad = (n) => String(n).padStart(2, "0");
+
+      function getRemainingMs() {
+        const now = Date.now();
+        let elapsed = (now - ANCHOR_UTC_MS) % CYCLE_MS;
+        if (elapsed < 0) elapsed += CYCLE_MS;
+        const remaining = CYCLE_MS - elapsed;
+        return remaining === CYCLE_MS ? 0 : remaining;
+      }
+
+      function render() {
+        const remaining = getRemainingMs();
+        const totalSeconds = Math.floor(remaining / 1000);
+
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        nodes.hours.textContent = pad(hours);
+        nodes.minutes.textContent = pad(minutes);
+        nodes.seconds.textContent = pad(seconds);
+      }
+
+      render();
+      setInterval(render, 1000);
+    </script>
+  </body>
+</html>
