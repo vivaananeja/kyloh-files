@@ -201,7 +201,7 @@
 
       .labels {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
         gap: clamp(0.6rem, 2vw, 1.3rem);
         max-width: 980px;
         margin: 0.9rem auto 0;
@@ -212,6 +212,19 @@
         font-size: clamp(0.7rem, 1.7vw, 0.95rem);
         letter-spacing: 0.44em;
         text-transform: uppercase;
+        text-align: center;
+      }
+
+      .labels .label:nth-child(1) {
+        grid-column: 1;
+      }
+
+      .labels .label:nth-child(2) {
+        grid-column: 3;
+      }
+
+      .labels .label:nth-child(3) {
+        grid-column: 5;
       }
 
       .footer {
