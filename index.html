@@ -166,12 +166,13 @@
         grid-template-columns: minmax(0, 1fr) var(--sep-col) minmax(0, 1fr) var(--sep-col) minmax(0, 1fr);
         align-items: center;
         gap: clamp(0.6rem, 2vw, 1.3rem);
-        max-width: 980px;
+        max-width: 1400px;
         margin: 0 auto;
       }
 
       .time-card {
-        width: 100%;
+        width: clamp(220px, 24vw, 360px);
+        aspect-ratio: 1 / 1;
         border: 1px solid var(--card-edge);
         border-radius: 20px;
         background:
@@ -179,7 +180,6 @@
           linear-gradient(180deg, var(--bg-2), var(--bg-1));
         box-shadow: inset 0 0 24px rgba(255, 255, 255, 0.03), 0 0 16px rgba(0, 0, 0, 0.25);
         overflow: hidden;
-        min-height: clamp(220px, 29vw, 300px);
         display: grid;
         place-items: center;
         position: relative;
@@ -208,7 +208,7 @@
         flex-direction: column;
         align-items: center;
         gap: 0.9rem;
-        width: 100%;
+        justify-self: center;
       }
 
       .label {
@@ -304,7 +304,8 @@
         }
 
         .time-card {
-          min-height: 150px;
+          width: min(100%, 320px);
+          aspect-ratio: 1 / 1;
           border-radius: 16px;
         }
 
