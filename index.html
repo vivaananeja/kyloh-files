@@ -571,10 +571,8 @@
         <div class="lore-name"><span class="status-dot"></span><span id="lore-name">Tung Tung Tung Sahur</span></div>
       </div>
       <div class="lore-panel">
-        <p id="lore-copy" class="lore-copy">Viewer, sit down. The Kyloh swag investigation is live.</p>
+        <p id="lore-copy" class="lore-copy">Tung Tung Tung Sahur here. Kyloh Files are under review.</p>
         <div class="lore-actions">
-          <button id="btn-sahur" class="lore-btn" type="button">Tung Sahur</button>
-          <button id="btn-viewer" class="lore-btn" type="button">Viewer</button>
           <button id="btn-continue" class="lore-btn" type="button">Continue</button>
         </div>
       </div>
@@ -587,10 +585,10 @@
       const TARGET_IST_MS_IN_DAY = 15 * 60 * 60 * 1000; // 3:00 PM
       const LOCK_KEY = "kyloh_lock_screen_v1";
       const loreScript = [
-        "Viewer, sit down. The Kyloh swag investigation is live.",
-        "Tung Tung Tung Sahur reviewed the evidence. Verdict: Kyloh has no swag.",
-        "Final statement: unmatched confidence, zero drip, case closed.",
-        "Press Continue once more for the official reveal."
+        "Tung Tung Tung Sahur here. Kyloh Files are under review.",
+        "I checked every file and the evidence is complete.",
+        "Verdict: Kyloh has no swag. This is now confirmed.",
+        "Brace yourselves."
       ];
 
       const nodes = {
@@ -605,8 +603,6 @@
       const loreName = document.getElementById("lore-name");
       const loreFigureMedia = document.getElementById("lore-figure-media");
       const loreFigureText = document.getElementById("lore-figure-text");
-      const btnSahur = document.getElementById("btn-sahur");
-      const btnViewer = document.getElementById("btn-viewer");
       const btnContinue = document.getElementById("btn-continue");
 
       const pad = (n) => String(n).padStart(2, "0");
@@ -630,11 +626,9 @@
       }
 
       function setCharacter(name) {
-        const isViewer = name.toLowerCase() === "viewer";
-        loreName.textContent = isViewer ? "Viewer" : "Tung Tung Tung Sahur";
-        loreFigureMedia.style.display = isViewer ? "none" : "grid";
-        loreFigureText.style.display = isViewer ? "block" : "none";
-        loreFigureText.innerHTML = "THE<br />VIEWER";
+        loreName.textContent = "Tung Tung Tung Sahur";
+        loreFigureMedia.style.display = "grid";
+        loreFigureText.style.display = "none";
       }
 
       function openLoreScreen() {
@@ -643,6 +637,7 @@
         loreStep = 0;
         setCharacter("sahur");
         loreCopy.textContent = loreScript[0];
+        btnContinue.textContent = "Continue";
         loreScreen.classList.add("active");
       }
 
@@ -669,16 +664,6 @@
         }
       }
 
-      btnSahur.addEventListener("click", () => {
-        setCharacter("sahur");
-        loreCopy.textContent = "Tung Tung Tung Sahur: I checked every file. Kyloh has no swag.";
-      });
-
-      btnViewer.addEventListener("click", () => {
-        setCharacter("viewer");
-        loreCopy.textContent = "Viewer: understood. The evidence is overwhelming.";
-      });
-
       btnContinue.addEventListener("click", () => {
         loreStep += 1;
         if (loreStep >= loreScript.length) {
@@ -686,6 +671,7 @@
           return;
         }
         loreCopy.textContent = loreScript[loreStep];
+        btnContinue.textContent = loreStep === loreScript.length - 1 ? "Reveal Kyloh Files" : "Continue";
       });
 
       revealVideoEl.addEventListener("ended", lockToBlackScreen);
