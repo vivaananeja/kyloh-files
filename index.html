@@ -293,6 +293,129 @@
         display: none;
       }
 
+      #lore-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 55;
+        display: none;
+        background:
+          radial-gradient(900px 500px at 50% 30%, rgba(85, 106, 150, 0.26), transparent 70%),
+          linear-gradient(160deg, #0b0d12, #111620);
+        color: #e9edf5;
+      }
+
+      #lore-screen.active {
+        display: grid;
+        grid-template-rows: 1fr auto;
+      }
+
+      .lore-hero {
+        position: relative;
+        display: grid;
+        align-items: end;
+        justify-items: start;
+        padding: 2rem;
+      }
+
+      .lore-corners::before,
+      .lore-corners::after {
+        content: "";
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        border: 1px solid rgba(223, 233, 255, 0.28);
+      }
+
+      .lore-corners::before {
+        top: 18px;
+        left: 18px;
+        border-right: 0;
+        border-bottom: 0;
+      }
+
+      .lore-corners::after {
+        top: 18px;
+        right: 18px;
+        border-left: 0;
+        border-bottom: 0;
+      }
+
+      .lore-name {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        font-size: 0.75rem;
+        letter-spacing: 0.35em;
+        text-transform: uppercase;
+        color: #9da8bc;
+        background: rgba(0, 0, 0, 0.35);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 9px;
+        padding: 0.45rem 0.7rem;
+      }
+
+      .lore-name .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #ff4545;
+      }
+
+      .lore-figure {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        font-size: clamp(3.6rem, 10vw, 9rem);
+        opacity: 0.85;
+        user-select: none;
+      }
+
+      .lore-figure-text {
+        text-align: center;
+        line-height: 1.1;
+        font-family: "Bebas Neue", sans-serif;
+        letter-spacing: 0.08em;
+        color: rgba(231, 236, 247, 0.92);
+      }
+
+      .lore-panel {
+        background: rgba(8, 11, 17, 0.94);
+        border-top: 1px solid rgba(225, 233, 255, 0.16);
+        padding: 1rem 1.4rem 1.2rem;
+      }
+
+      .lore-copy {
+        margin: 0;
+        font-size: clamp(0.86rem, 1.6vw, 1.02rem);
+        letter-spacing: 0.03em;
+        color: #d8dfee;
+      }
+
+      .lore-actions {
+        margin-top: 0.8rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.55rem;
+      }
+
+      .lore-btn {
+        appearance: none;
+        border: 1px solid rgba(207, 218, 243, 0.27);
+        background: rgba(255, 255, 255, 0.03);
+        color: #dce4f7;
+        border-radius: 8px;
+        padding: 0.46rem 0.72rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        font-size: 0.68rem;
+        cursor: pointer;
+      }
+
+      .lore-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
       @media (max-width: 800px) {
         .timer-row {
           grid-template-columns: 1fr;
@@ -420,11 +543,35 @@
       </video>
     </section>
 
+    <section id="lore-screen" aria-label="Classified interaction">
+      <div class="lore-hero lore-corners">
+        <div class="lore-figure" aria-hidden="true">
+          <div id="lore-figure-text" class="lore-figure-text">TUNG TUNG<br />TUNG SAHUR</div>
+        </div>
+        <div class="lore-name"><span class="status-dot"></span><span id="lore-name">Tung Tung Tung Sahur</span></div>
+      </div>
+      <div class="lore-panel">
+        <p id="lore-copy" class="lore-copy">Viewer, sit down. The Kyloh swag investigation is live.</p>
+        <div class="lore-actions">
+          <button id="btn-sahur" class="lore-btn" type="button">Tung Sahur</button>
+          <button id="btn-viewer" class="lore-btn" type="button">Viewer</button>
+          <button id="btn-continue" class="lore-btn" type="button">Continue</button>
+        </div>
+      </div>
+    </section>
+
     <script>
       // Global countdown to 3:00 PM IST (Asia/Kolkata), same for everyone.
       const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
       const DAY_MS = 24 * 60 * 60 * 1000;
       const TARGET_IST_MS_IN_DAY = 15 * 60 * 60 * 1000; // 3:00 PM
+      const LOCK_KEY = "kyloh_lock_screen_v1";
+      const loreScript = [
+        "Viewer, sit down. The Kyloh swag investigation is live.",
+        "Tung Tung Tung Sahur reviewed the evidence. Verdict: Kyloh has no swag.",
+        "Final statement: unmatched confidence, zero drip, case closed.",
+        "Press Continue once more for the official reveal."
+      ];
 
       const nodes = {
         hours: document.getElementById("hours"),
@@ -433,9 +580,18 @@
       };
       const revealScreen = document.getElementById("reveal-screen");
       const revealVideoEl = document.getElementById("reveal-video");
+      const loreScreen = document.getElementById("lore-screen");
+      const loreCopy = document.getElementById("lore-copy");
+      const loreName = document.getElementById("lore-name");
+      const loreFigureText = document.getElementById("lore-figure-text");
+      const btnSahur = document.getElementById("btn-sahur");
+      const btnViewer = document.getElementById("btn-viewer");
+      const btnContinue = document.getElementById("btn-continue");
 
       const pad = (n) => String(n).padStart(2, "0");
       let revealed = false;
+      let loreActive = false;
+      let loreStep = 0;
 
       function getMsUntil3PmIst() {
         const nowIstMs = Date.now() + IST_OFFSET_MS;
@@ -445,12 +601,32 @@
       }
 
       function lockToBlackScreen() {
+        try {
+          localStorage.setItem(LOCK_KEY, "1");
+        } catch (_) {}
         revealScreen.classList.add("active", "done");
+        loreScreen.classList.remove("active");
+      }
+
+      function setCharacter(name) {
+        const isViewer = name.toLowerCase() === "viewer";
+        loreName.textContent = isViewer ? "Viewer" : "Tung Tung Tung Sahur";
+        loreFigureText.innerHTML = isViewer ? "THE<br />VIEWER" : "TUNG TUNG<br />TUNG SAHUR";
+      }
+
+      function openLoreScreen() {
+        if (loreActive) return;
+        loreActive = true;
+        loreStep = 0;
+        setCharacter("sahur");
+        loreCopy.textContent = loreScript[0];
+        loreScreen.classList.add("active");
       }
 
       function revealVideo() {
         if (revealed) return;
         revealed = true;
+        loreScreen.classList.remove("active");
         revealScreen.classList.add("active");
         revealVideoEl.currentTime = 0;
         revealVideoEl.controls = false;
@@ -470,14 +646,46 @@
         }
       }
 
+      btnSahur.addEventListener("click", () => {
+        setCharacter("sahur");
+        loreCopy.textContent = "Tung Tung Tung Sahur: I checked every file. Kyloh has no swag.";
+      });
+
+      btnViewer.addEventListener("click", () => {
+        setCharacter("viewer");
+        loreCopy.textContent = "Viewer: understood. The evidence is overwhelming.";
+      });
+
+      btnContinue.addEventListener("click", () => {
+        loreStep += 1;
+        if (loreStep >= loreScript.length) {
+          revealVideo();
+          return;
+        }
+        loreCopy.textContent = loreScript[loreStep];
+      });
+
       revealVideoEl.addEventListener("ended", lockToBlackScreen);
       revealVideoEl.addEventListener("error", lockToBlackScreen);
 
+      const wasLocked = (() => {
+        try {
+          return localStorage.getItem(LOCK_KEY) === "1";
+        } catch (_) {
+          return false;
+        }
+      })();
+
+      if (wasLocked) {
+        lockToBlackScreen();
+      }
+
       function render() {
+        if (wasLocked) return;
         const remaining = getMsUntil3PmIst();
 
         if (remaining <= 0) {
-          revealVideo();
+          openLoreScreen();
           return;
         }
 
