@@ -200,12 +200,11 @@
         transform: translateY(-8px);
       }
 
-      .labels {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) var(--sep-col) minmax(0, 1fr) var(--sep-col) minmax(0, 1fr);
-        gap: clamp(0.6rem, 2vw, 1.3rem);
-        max-width: 980px;
-        margin: 0.9rem auto 0;
+      .time-unit {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.9rem;
       }
 
       .label {
@@ -214,18 +213,6 @@
         letter-spacing: 0.44em;
         text-transform: uppercase;
         text-align: center;
-      }
-
-      .labels .label:nth-child(1) {
-        grid-column: 1;
-      }
-
-      .labels .label:nth-child(2) {
-        grid-column: 3;
-      }
-
-      .labels .label:nth-child(3) {
-        grid-column: 5;
       }
 
       .footer {
@@ -317,12 +304,6 @@
           border-radius: 16px;
         }
 
-        .labels {
-          grid-template-columns: 1fr;
-          gap: 1.5rem;
-          margin-top: 1rem;
-        }
-
         .sticker.troll,
         .sticker.cat-a {
           display: none;
@@ -370,23 +351,26 @@
       <div class="title-rule" aria-hidden="true"></div>
 
       <section class="timer-row" aria-label="Countdown to 3:00 PM IST">
-        <article class="time-card">
-          <div id="hours" class="digits">--</div>
-        </article>
+        <div class="time-unit">
+          <article class="time-card">
+            <div id="hours" class="digits">--</div>
+          </article>
+          <div class="label">Hours</div>
+        </div>
         <div class="separator" aria-hidden="true">:</div>
-        <article class="time-card">
-          <div id="minutes" class="digits">--</div>
-        </article>
+        <div class="time-unit">
+          <article class="time-card">
+            <div id="minutes" class="digits">--</div>
+          </article>
+          <div class="label">Minutes</div>
+        </div>
         <div class="separator" aria-hidden="true">:</div>
-        <article class="time-card">
-          <div id="seconds" class="digits">--</div>
-        </article>
-      </section>
-
-      <section class="labels" aria-hidden="true">
-        <div class="label">Hours</div>
-        <div class="label">Minutes</div>
-        <div class="label">Seconds</div>
+        <div class="time-unit">
+          <article class="time-card">
+            <div id="seconds" class="digits">--</div>
+          </article>
+          <div class="label">Seconds</div>
+        </div>
       </section>
 
       <footer class="footer">
