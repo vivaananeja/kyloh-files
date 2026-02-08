@@ -51,6 +51,7 @@
       .rings {
         position: fixed;
         inset: 0;
+        z-index: 0;
         pointer-events: none;
         background: repeating-radial-gradient(
           circle at center,
@@ -63,9 +64,60 @@
       }
 
       .shell {
+        position: relative;
+        z-index: 5;
         width: min(1160px, 94vw);
         padding: 1.8rem 0.8rem 2rem;
         text-align: center;
+      }
+
+      .edge-stickers {
+        position: fixed;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+      }
+
+      .sticker {
+        position: absolute;
+        opacity: 0.95;
+        filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.35));
+        user-select: none;
+      }
+
+      .sticker.troll {
+        top: 5vh;
+        left: 2vw;
+        width: clamp(82px, 11vw, 170px);
+        transform: rotate(-8deg);
+      }
+
+      .sticker.cat-a {
+        top: 9vh;
+        right: 3vw;
+        width: clamp(88px, 12vw, 180px);
+        transform: rotate(7deg);
+      }
+
+      .sticker.cat-b {
+        bottom: 7vh;
+        left: 3vw;
+        width: clamp(92px, 12vw, 180px);
+        transform: rotate(-6deg);
+      }
+
+      .sticker.sixty-seven {
+        bottom: 6vh;
+        right: 3vw;
+        width: clamp(70px, 9vw, 145px);
+        transform: rotate(9deg);
+      }
+
+      .sticker.cry-laugh {
+        top: 44vh;
+        right: 1.5vw;
+        width: clamp(66px, 8vw, 130px);
+        transform: rotate(-12deg);
       }
 
       .live {
@@ -127,17 +179,6 @@
         display: grid;
         place-items: center;
         position: relative;
-      }
-
-      .time-card::after {
-        content: "";
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 50%;
-        height: 1px;
-        background: rgba(0, 0, 0, 0.35);
-        transform: translateY(-0.5px);
       }
 
       .digits {
@@ -266,6 +307,16 @@
           gap: 1.5rem;
           margin-top: 1rem;
         }
+
+        .sticker.troll,
+        .sticker.cat-a {
+          display: none;
+        }
+
+        .sticker.cry-laugh {
+          right: 2vw;
+          top: 5vh;
+        }
       }
 
       @keyframes pulse {
@@ -286,6 +337,13 @@
   </head>
   <body>
     <div class="rings" aria-hidden="true"></div>
+    <div class="edge-stickers" aria-hidden="true">
+      <img class="sticker troll" src="tow-mater.png" alt="" />
+      <img class="sticker cat-a" src="cat-face.png" alt="" />
+      <img class="sticker cat-b" src="cat-point.png" alt="" />
+      <img class="sticker sixty-seven" src="67.png" alt="" />
+      <img class="sticker cry-laugh" src="cry-laugh.jpeg" alt="" />
+    </div>
 
     <main class="shell">
       <div class="live" aria-label="Live countdown">
