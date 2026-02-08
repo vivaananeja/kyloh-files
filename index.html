@@ -6,7 +6,7 @@
     <title>Kyloh Files</title>
     <meta
       name="description"
-      content="Kyloh Files: globally synced 12-hour live countdown."
+      content="Kyloh Files: globally synced countdown to 3:00 PM IST."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -224,6 +224,28 @@
         display: block;
       }
 
+      #reveal-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        background: #000;
+        display: none;
+      }
+
+      #reveal-screen.active {
+        display: block;
+      }
+
+      #reveal-screen video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      #reveal-screen.done video {
+        display: none;
+      }
+
       @media (max-width: 800px) {
         .timer-row {
           grid-template-columns: 1fr;
@@ -274,7 +296,7 @@
       <h1>Kyloh Files</h1>
       <div class="title-rule" aria-hidden="true"></div>
 
-      <section class="timer-row" aria-label="12-hour countdown">
+      <section class="timer-row" aria-label="Countdown to 3:00 PM IST">
         <article class="time-card">
           <div id="hours" class="digits">--</div>
         </article>
@@ -330,29 +352,73 @@
       </footer>
     </main>
 
+    <section id="reveal-screen" aria-label="Reveal video">
+      <video id="reveal-video" preload="auto" playsinline>
+        <source src="rickroll.mp4" type="video/mp4" />
+      </video>
+    </section>
+
     <script>
-      // Fixed UTC anchor gives everyone the same remaining time.
-      const ANCHOR_UTC_MS = Date.UTC(2026, 0, 1, 0, 0, 0);
-      const CYCLE_MS = 12 * 60 * 60 * 1000;
+      // Global countdown to 3:00 PM IST (Asia/Kolkata), same for everyone.
+      const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+      const DAY_MS = 24 * 60 * 60 * 1000;
+      const TARGET_IST_MS_IN_DAY = 15 * 60 * 60 * 1000; // 3:00 PM
 
       const nodes = {
         hours: document.getElementById("hours"),
         minutes: document.getElementById("minutes"),
         seconds: document.getElementById("seconds"),
       };
+      const revealScreen = document.getElementById("reveal-screen");
+      const revealVideoEl = document.getElementById("reveal-video");
 
       const pad = (n) => String(n).padStart(2, "0");
+      let revealed = false;
 
-      function getRemainingMs() {
-        const now = Date.now();
-        let elapsed = (now - ANCHOR_UTC_MS) % CYCLE_MS;
-        if (elapsed < 0) elapsed += CYCLE_MS;
-        const remaining = CYCLE_MS - elapsed;
-        return remaining === CYCLE_MS ? 0 : remaining;
+      function getMsUntil3PmIst() {
+        const nowIstMs = Date.now() + IST_OFFSET_MS;
+        let msIntoIstDay = nowIstMs % DAY_MS;
+        if (msIntoIstDay < 0) msIntoIstDay += DAY_MS;
+        return TARGET_IST_MS_IN_DAY - msIntoIstDay;
       }
 
+      function lockToBlackScreen() {
+        revealScreen.classList.add("active", "done");
+      }
+
+      function revealVideo() {
+        if (revealed) return;
+        revealed = true;
+        revealScreen.classList.add("active");
+        revealVideoEl.currentTime = 0;
+        revealVideoEl.controls = false;
+        revealVideoEl.loop = false;
+        revealVideoEl.muted = false;
+
+        const tryPlay = revealVideoEl.play();
+
+        if (tryPlay && typeof tryPlay.catch === "function") {
+          tryPlay.catch(() => {
+            // Autoplay with audio may be blocked; fallback to muted playback.
+            revealVideoEl.muted = true;
+            revealVideoEl.play().catch(() => {
+              lockToBlackScreen();
+            });
+          });
+        }
+      }
+
+      revealVideoEl.addEventListener("ended", lockToBlackScreen);
+      revealVideoEl.addEventListener("error", lockToBlackScreen);
+
       function render() {
-        const remaining = getRemainingMs();
+        const remaining = getMsUntil3PmIst();
+
+        if (remaining <= 0) {
+          revealVideo();
+          return;
+        }
+
         const totalSeconds = Math.floor(remaining / 1000);
 
         const hours = Math.floor(totalSeconds / 3600);
