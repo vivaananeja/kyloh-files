@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blackjack Monte Carlo Simulator</title>
+    <style>
+      :root {
+        --bg: #0b1020;
+        --bg-alt: #101832;
+        --card: #141f3f;
+        --line: #2d3d73;
+        --text: #ecf1ff;
+        --muted: #9caad8;
+        --accent: #62e6a8;
+        --accent-2: #7ab8ff;
+        --danger: #ff7f9f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+
+      body {
+        font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(1100px 700px at 8% -10%, #1f2f66 0%, transparent 48%),
+          radial-gradient(1000px 640px at 100% 0%, #1b345b 0%, transparent 40%),
+          linear-gradient(165deg, var(--bg) 0%, var(--bg-alt) 100%);
+      }
+
+      .wrap {
+        width: min(1100px, 94vw);
+        margin: 1.6rem auto 2.5rem;
+      }
+
+      .title {
+        margin: 0 0 0.4rem;
+        font-size: clamp(1.7rem, 4vw, 2.7rem);
+        letter-spacing: 0.03em;
+      }
+
+      .subtitle {
+        margin: 0 0 1.2rem;
+        color: var(--muted);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .panel {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0));
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 1rem;
+      }
+
+      .panel h2 {
+        margin: 0 0 0.8rem;
+        font-size: 1.1rem;
+      }
+
+      .form-grid {
+        display: grid;
+        gap: 0.7rem;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+
+      label {
+        display: block;
+        font-size: 0.89rem;
+        color: var(--muted);
+        margin-bottom: 0.25rem;
+      }
+
+      input,
+      select {
+        width: 100%;
+        border: 1px solid #385294;
+        background: #0d1837;
+        color: var(--text);
+        border-radius: 8px;
+        padding: 0.5rem 0.58rem;
+      }
+
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+      }
+
+      button {
+        border: none;
+        border-radius: 9px;
+        padding: 0.62rem 1rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      #runBtn {
+        background: linear-gradient(135deg, var(--accent), #4fdac6);
+        color: #03231b;
+      }
+
+      #downloadBtn {
+        background: linear-gradient(135deg, var(--accent-2), #68d4ff);
+        color: #051830;
+      }
+
+      #downloadBtn[disabled] {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+
+      .status {
+        margin-top: 0.55rem;
+        font-size: 0.92rem;
+        color: var(--muted);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 0.6rem;
+        font-size: 0.92rem;
+      }
+
+      th,
+      td {
+        border: 1px solid var(--line);
+        padding: 0.5rem;
+        text-align: right;
+      }
+
+      th {
+        background: #182955;
+        text-align: center;
+      }
+
+      td:first-child,
+      th:first-child {
+        text-align: left;
+      }
+
+      .delta {
+        margin-top: 0.7rem;
+        padding: 0.65rem;
+        border-radius: 10px;
+        background: #102145;
+        border: 1px dashed #4467bb;
+      }
+
+      .note {
+        font-size: 0.9rem;
+        color: #c6d2ff;
+        line-height: 1.45;
+      }
+
+      .warn {
+        color: var(--danger);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <h1 class="title">Blackjack Monte Carlo Simulator</h1>
+      <p class="subtitle">
+        Constant-shuffle 52-card probabilities with configurable strategy and rules.
+      </p>
+
+      <section class="panel">
+        <h2>Simulation Settings</h2>
+        <div class="form-grid">
+          <div>
+            <label for="nHands">Hands per dealer rule (N)</label>
+            <input id="nHands" type="number" min="1000" step="1000" value="100000" />
+          </div>
+          <div>
+            <label for="strategyMode">Player strategy mode</label>
+            <select id="strategyMode">
+              <option value="basic_lite" selected>basic_lite</option>
+              <option value="threshold">threshold</option>
+            </select>
+          </div>
+          <div>
+            <label for="threshold">Threshold T (if threshold mode)</label>
+            <input id="threshold" type="number" min="4" max="21" value="17" />
+          </div>
+          <div>
+            <label for="blackjackPayout">Natural blackjack payout</label>
+            <select id="blackjackPayout">
+              <option value="1.0" selected>1.0</option>
+              <option value="1.5">1.5</option>
+            </select>
+          </div>
+          <div>
+            <label for="logHands">Log individual hands to CSV</label>
+            <select id="logHands">
+              <option value="false" selected>false</option>
+              <option value="true">true</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top: 0.9rem">
+          <button id="runBtn">Run S17 + H17</button>
+          <button id="downloadBtn" disabled>Download Hand Log CSV</button>
+        </div>
+        <div id="status" class="status">Ready.</div>
+      </section>
+
+      <section class="panel">
+        <h2>Results</h2>
+        <div id="resultsArea" class="note">Run the simulator to see output here.</div>
+      </section>
+
+      <section class="panel">
+        <h2>IA Explanation Text</h2>
+        <p class="note">
+          EV is the average payoff per hand. If each hand payoff is
+          <code>X<sub>i</sub></code>, then
+          <code>EV = (1/N) * sum(X<sub>i</sub>)</code>, where win = +1 (or +1.5 for natural blackjack
+          if enabled), loss = -1, and push = 0.
+        </p>
+        <p class="note">
+          The 95% confidence interval for EV is
+          <code>EV ± 1.96 * (s / sqrt(N))</code>, where <code>s</code> is the sample standard deviation
+          of payoffs.
+        </p>
+        <p class="note">
+          For the EV difference
+          <code>Delta = EV(S17) - EV(H17)</code>, using independent-run approximation:
+          <code>SE(Delta) = sqrt(SE(S17)^2 + SE(H17)^2)</code>, so
+          <code>95% CI = Delta ± 1.96 * SE(Delta)</code>.
+        </p>
+      </section>
+    </main>
+
+    <script>
+      const state = {
+        csvText: "",
+      };
+
+      function drawCard() {
+        // Constant-shuffle probabilities:
+        // A:1/13, 2-9:1/13 each, 10-value:4/13
+        const r = Math.floor(Math.random() * 13) + 1;
+        if (r === 1) return "A";
+        if (r >= 2 && r <= 9) return r;
+        return 10;
+      }
+
+      function handTotalAndSoft(hand) {
+        let total = 0;
+        let acesAsEleven = 0;
+
+        for (const card of hand) {
+          if (card === "A") {
+            total += 11;
+            acesAsEleven += 1;
+          } else {
+            total += card;
+          }
+        }
+
+        while (total > 21 && acesAsEleven > 0) {
+          total -= 10;
+          acesAsEleven -= 1;
+        }
+
+        return { total, soft: acesAsEleven > 0 };
+      }
+
+      function isNaturalBlackjack(hand) {
+        if (hand.length !== 2) return false;
+        return handTotalAndSoft(hand).total === 21;
+      }
+
+      function playerShouldHit(playerHand, dealerUpcard, strategy) {
+        const total = handTotalAndSoft(playerHand).total;
+
+        if (strategy.mode === "threshold") {
+          return total < strategy.threshold;
+        }
+
+        if (strategy.mode === "basic_lite") {
+          if (total <= 11) return true;
+          if (total >= 17) return false;
+          return ![2, 3, 4, 5, 6].includes(dealerUpcard);
+        }
+
+        throw new Error("Unknown strategy mode: " + strategy.mode);
+      }
+
+      function playDealerHand(dealerHand, dealerSoft17Rule) {
+        while (true) {
+          const { total, soft } = handTotalAndSoft(dealerHand);
+
+          if (total <= 16) {
+            dealerHand.push(drawCard());
+            continue;
+          }
+
+          if (total >= 18) break;
+
+          // total === 17
+          if (soft && dealerSoft17Rule === "H17") {
+            dealerHand.push(drawCard());
+            continue;
+          }
+          break;
+        }
+        return dealerHand;
+      }
+
+      function payoffToOutcome(payoff) {
+        if (payoff > 0) return "W";
+        if (payoff < 0) return "L";
+        return "P";
+      }
+
+      function simulateOneHand(dealerSoft17Rule, cfg) {
+        const player = [drawCard(), drawCard()];
+        const dealer = [drawCard(), drawCard()];
+        const dealerUpcard = dealer[0];
+
+        const playerNatural = isNaturalBlackjack(player);
+        const dealerNatural = isNaturalBlackjack(dealer);
+
+        if (playerNatural || dealerNatural) {
+          let payoff = 0;
+          if (playerNatural && dealerNatural) payoff = 0;
+          else if (playerNatural) payoff = cfg.blackjack_payout;
+          else payoff = -1;
+
+          return {
+            dealer_upcard: dealerUpcard,
+            player_final_total: handTotalAndSoft(player).total,
+            dealer_final_total: handTotalAndSoft(dealer).total,
+            outcome: payoffToOutcome(payoff),
+            payoff,
+          };
+        }
+
+        while (true) {
+          const playerTotal = handTotalAndSoft(player).total;
+          if (playerTotal >= 21) break;
+          if (!playerShouldHit(player, dealerUpcard, cfg.strategy)) break;
+          player.push(drawCard());
+        }
+
+        const playerFinal = handTotalAndSoft(player).total;
+        if (playerFinal > 21) {
+          return {
+            dealer_upcard: dealerUpcard,
+            player_final_total: playerFinal,
+            dealer_final_total: handTotalAndSoft(dealer).total,
+            outcome: "L",
+            payoff: -1,
+          };
+        }
+
+        playDealerHand(dealer, dealerSoft17Rule);
+        const dealerFinal = handTotalAndSoft(dealer).total;
+
+        let payoff = 0;
+        if (dealerFinal > 21 || playerFinal > dealerFinal) payoff = 1;
+        else if (playerFinal < dealerFinal) payoff = -1;
+        else payoff = 0;
+
+        return {
+          dealer_upcard: dealerUpcard,
+          player_final_total: playerFinal,
+          dealer_final_total: dealerFinal,
+          outcome: payoffToOutcome(payoff),
+          payoff,
+        };
+      }
+
+      function emptyStats(nHands) {
+        return {
+          n: 0,
+          mean: 0,
+          m2: 0,
+          wins: 0,
+          losses: 0,
+          pushes: 0,
+          nHands,
+        };
+      }
+
+      function addObservation(stats, payoff) {
+        stats.n += 1;
+        const delta = payoff - stats.mean;
+        stats.mean += delta / stats.n;
+        const delta2 = payoff - stats.mean;
+        stats.m2 += delta * delta2;
+
+        if (payoff > 0) stats.wins += 1;
+        else if (payoff < 0) stats.losses += 1;
+        else stats.pushes += 1;
+      }
+
+      function finalizeStats(stats, dealerRule) {
+        const variance = stats.n > 1 ? stats.m2 / (stats.n - 1) : 0;
+        const sampleStd = Math.sqrt(variance);
+        const se = sampleStd / Math.sqrt(stats.n);
+        const ev = stats.mean;
+
+        return {
+          dealer_rule: dealerRule,
+          n_hands: stats.nHands,
+          wins: stats.wins,
+          losses: stats.losses,
+          pushes: stats.pushes,
+          p_win: stats.wins / stats.nHands,
+          p_loss: stats.losses / stats.nHands,
+          p_push: stats.pushes / stats.nHands,
+          ev,
+          sample_std: sampleStd,
+          se,
+          ci_low: ev - 1.96 * se,
+          ci_high: ev + 1.96 * se,
+        };
+      }
+
+      async function simulateRule(dealerRule, cfg, statusEl) {
+        const stats = emptyStats(cfg.n_hands);
+        const logs = cfg.log_hands ? [] : null;
+        const chunkSize = 5000;
+
+        for (let i = 0; i < cfg.n_hands; i++) {
+          const rec = simulateOneHand(dealerRule, cfg);
+          addObservation(stats, rec.payoff);
+
+          if (cfg.log_hands) {
+            logs.push({
+              dealer_rule: dealerRule,
+              dealer_upcard: rec.dealer_upcard,
+              player_final_total: rec.player_final_total,
+              dealer_final_total: rec.dealer_final_total,
+              outcome: rec.outcome,
+              payoff: rec.payoff,
+            });
+          }
+
+          if ((i + 1) % chunkSize === 0) {
+            statusEl.textContent = `Running ${dealerRule}: ${i + 1} / ${cfg.n_hands} hands`;
+            await new Promise((resolve) => setTimeout(resolve, 0));
+          }
+        }
+
+        return { summary: finalizeStats(stats, dealerRule), logs };
+      }
+
+      function num(value, digits = 6) {
+        return Number(value).toFixed(digits);
+      }
+
+      function renderResults(resS17, resH17) {
+        const delta = resS17.ev - resH17.ev;
+        const seDelta = Math.sqrt(resS17.se * resS17.se + resH17.se * resH17.se);
+        const deltaLow = delta - 1.96 * seDelta;
+        const deltaHigh = delta + 1.96 * seDelta;
+
+        const html = `
+          <table>
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th>S17</th>
+                <th>H17</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>N</td><td>${resS17.n_hands}</td><td>${resH17.n_hands}</td></tr>
+              <tr><td>Wins</td><td>${resS17.wins}</td><td>${resH17.wins}</td></tr>
+              <tr><td>Losses</td><td>${resS17.losses}</td><td>${resH17.losses}</td></tr>
+              <tr><td>Pushes</td><td>${resS17.pushes}</td><td>${resH17.pushes}</td></tr>
+              <tr><td>p_win</td><td>${num(resS17.p_win)}</td><td>${num(resH17.p_win)}</td></tr>
+              <tr><td>p_loss</td><td>${num(resS17.p_loss)}</td><td>${num(resH17.p_loss)}</td></tr>
+              <tr><td>p_push</td><td>${num(resS17.p_push)}</td><td>${num(resH17.p_push)}</td></tr>
+              <tr><td>EV</td><td>${num(resS17.ev)}</td><td>${num(resH17.ev)}</td></tr>
+              <tr><td>95% CI (low)</td><td>${num(resS17.ci_low)}</td><td>${num(resH17.ci_low)}</td></tr>
+              <tr><td>95% CI (high)</td><td>${num(resS17.ci_high)}</td><td>${num(resH17.ci_high)}</td></tr>
+            </tbody>
+          </table>
+          <div class="delta">
+            <strong>Delta EV (S17 - H17):</strong> ${num(delta)}<br />
+            <strong>Approx 95% CI for Delta:</strong> [${num(deltaLow)}, ${num(deltaHigh)}]
+          </div>
+        `;
+
+        document.getElementById("resultsArea").innerHTML = html;
+      }
+
+      function logsToCsv(logs) {
+        const header = [
+          "dealer_rule",
+          "dealer_upcard",
+          "player_final_total",
+          "dealer_final_total",
+          "outcome",
+          "payoff",
+        ];
+
+        const escapeCell = (v) => {
+          const s = String(v);
+          if (s.includes(",") || s.includes('"') || s.includes("\n")) {
+            return '"' + s.replace(/"/g, '""') + '"';
+          }
+          return s;
+        };
+
+        const lines = [header.join(",")];
+        for (const row of logs) {
+          lines.push(header.map((col) => escapeCell(row[col])).join(","));
+        }
+        return lines.join("\n");
+      }
+
+      function getConfigFromForm() {
+        const nHands = Number(document.getElementById("nHands").value);
+        const strategyMode = document.getElementById("strategyMode").value;
+        const threshold = Number(document.getElementById("threshold").value);
+        const blackjackPayout = Number(document.getElementById("blackjackPayout").value);
+        const logHands = document.getElementById("logHands").value === "true";
+
+        if (!Number.isFinite(nHands) || nHands < 1) {
+          throw new Error("N must be a positive integer.");
+        }
+        if (!Number.isFinite(threshold) || threshold < 4 || threshold > 21) {
+          throw new Error("Threshold T must be between 4 and 21.");
+        }
+        if (![1, 1.5].includes(blackjackPayout)) {
+          throw new Error("Blackjack payout must be 1.0 or 1.5.");
+        }
+
+        return {
+          n_hands: Math.floor(nHands),
+          strategy: {
+            mode: strategyMode,
+            threshold: Math.floor(threshold),
+          },
+          blackjack_payout: blackjackPayout,
+          log_hands: logHands,
+        };
+      }
+
+      async function runSimulation() {
+        const statusEl = document.getElementById("status");
+        const runBtn = document.getElementById("runBtn");
+        const downloadBtn = document.getElementById("downloadBtn");
+
+        state.csvText = "";
+        downloadBtn.disabled = true;
+
+        let cfg;
+        try {
+          cfg = getConfigFromForm();
+        } catch (err) {
+          statusEl.innerHTML = `<span class="warn">${err.message}</span>`;
+          return;
+        }
+
+        runBtn.disabled = true;
+        statusEl.textContent = "Starting...";
+        document.getElementById("resultsArea").textContent = "Simulation running.";
+
+        const t0 = performance.now();
+        try {
+          const s17 = await simulateRule("S17", cfg, statusEl);
+          const h17 = await simulateRule("H17", cfg, statusEl);
+          renderResults(s17.summary, h17.summary);
+
+          if (cfg.log_hands) {
+            const merged = s17.logs.concat(h17.logs);
+            state.csvText = logsToCsv(merged);
+            downloadBtn.disabled = false;
+          }
+
+          const sec = ((performance.now() - t0) / 1000).toFixed(2);
+          statusEl.textContent = `Completed in ${sec}s`;
+        } catch (err) {
+          statusEl.innerHTML = `<span class="warn">${err.message}</span>`;
+        } finally {
+          runBtn.disabled = false;
+        }
+      }
+
+      function downloadCsv() {
+        if (!state.csvText) return;
+        const blob = new Blob([state.csvText], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "blackjack_hand_log.csv";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      document.getElementById("runBtn").addEventListener("click", runSimulation);
+      document.getElementById("downloadBtn").addEventListener("click", downloadCsv);
+    </script>
+  </body>
+</html>
